@@ -37,7 +37,7 @@ Archived tasks never appear in search; invalid input is a client error (400), no
 
 ## Tools/AI used
 
-Used AI (Codebuff) to explore the code and draft fixes. I reproduced the archived
-leak with `curl`, and ran `./mvnw test` (5 passing) and `npm run build` (passing)
-this session. I rejected the AI's suggestion to add a service layer. Frontend
-race/state changes were build-verified only.
+Used AI (Codebuff) to explore the code and draft fixes; verified with `curl`
+that no archived rows leak and that bad input returns 400, plus `./mvnw test`
+(5 passing) and `npm run build` (passing). I rejected the AI's service-layer
+suggestion. Frontend race/state changes were build-verified only.
