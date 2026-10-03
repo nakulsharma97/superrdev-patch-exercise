@@ -4,6 +4,8 @@ import StatusFilter from './components/StatusFilter';
 import TaskTable from './components/TaskTable';
 import { useTasks } from './hooks/useTasks';
 
+const PAGE_SIZE = 10;
+
 export default function App() {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
@@ -16,9 +18,9 @@ export default function App() {
     setPage(1);
   }, [query, status]);
 
-  const { tasks, total, loading, error } = useTasks(query, status, page, 10);
+  const { tasks, total, loading, error } = useTasks(query, status, page, PAGE_SIZE);
 
-  const totalPages = Math.ceil(total / 10);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="app">

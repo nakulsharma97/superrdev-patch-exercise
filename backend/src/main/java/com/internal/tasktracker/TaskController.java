@@ -33,12 +33,16 @@ public class TaskController {
         if (pageSize < 1) {
             return badRequest("pageSize must be >= 1");
         }
+        // Cap page size so a huge value cannot force an oversized in-memory slice
+        if (pageSize > 100) {
+            pageSize = 100;
+        }
 
         // Parse status filter, rejecting unknown values instead of throwing
         String normalizedStatus = null;
-        if (status != null && !status.isEmpty()) {
+        if (status != null && !status.isBlank()) {
             try {
-                normalizedStatus = TaskStatus.valueOf(status.toUpperCase()).name();
+                normalizedStatus = TaskStatus.valueOf(status.trim().toUpperCase()).name();
             } catch (IllegalArgumentException e) {
                 return badRequest("status must be one of: OPEN, IN_PROGRESS, DONE");
             }
@@ -49,11 +53,14 @@ public class TaskController {
 
         List<Task> allResults = taskRepository.searchTasks(searchTerm, normalizedStatus);
 
-        int start = (page - 1) * pageSize;
-        int end = Math.min(start + pageSize, allResults.size());
-        List<Task> pageResults = (start < allResults.size())
-                ? allResults.subList(start, end)
-                : Collections.emptyList();
+        // Long math avoids int overflow for large page values, which would make
+        // start negative and cause subList() to throw (HTTP 500).
+        long start = (long) (page - 1) * pageSize;
+        List<Task> pageResults = Collections.emptyList();
+        if (start < allResults.size()) {
+            int end = (int) Math.min(start + pageSize, allResults.size());
+            pageResults = allResults.subList((int) start, end);
+        }
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("items", pageResults);
